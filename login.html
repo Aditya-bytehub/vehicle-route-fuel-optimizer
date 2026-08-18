@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — SmartRoute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b1210; --panel:#121b19; --panel-2:#17211f; --line:#24302d;
+    --text:#e7efec; --muted:#8ba39c; --accent:#ff8a3d; --accent-dim:#7a4a26;
+    --data:#59d9b3; --data-dim:#245346; --danger:#ff6b6b; --radius:14px;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--text); font-family:'Inter', system-ui, sans-serif;
+    min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  a{ color:inherit; }
+  ::selection{ background:var(--accent); color:#1a1006; }
+
+  .shell{
+    min-height:100vh; display:grid; grid-template-columns: 1.1fr 1fr;
+  }
+  @media (max-width:920px){ .shell{ grid-template-columns:1fr; } }
+
+  /* ---------- left: brand / context panel ---------- */
+  .brand-side{
+    position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;
+    padding:clamp(28px,4vw,56px);
+    background:
+      radial-gradient(700px 500px at 20% 10%, rgba(255,138,61,.10), transparent 55%),
+      radial-gradient(700px 500px at 90% 90%, rgba(89,217,179,.08), transparent 55%),
+      linear-gradient(rgba(89,217,179,.045) 1px, transparent 1px) 0 0/34px 34px,
+      linear-gradient(90deg, rgba(89,217,179,.045) 1px, transparent 1px) 0 0/34px 34px,
+      var(--panel);
+    border-right:1px solid var(--line);
+  }
+  @media (max-width:920px){ .brand-side{ border-right:none; border-bottom:1px solid var(--line); padding-bottom:40px; } }
+
+  .brand{ display:flex; align-items:center; gap:11px; }
+  .brand-mark{
+    width:36px; height:36px; border-radius:8px;
+    background:linear-gradient(155deg, var(--accent), #c85f1d);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    box-shadow:0 0 0 1px rgba(255,138,61,.25), 0 6px 18px -6px rgba(255,138,61,.5);
+  }
+  .brand-mark svg{ width:19px; height:19px; }
+  .brand-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:17px; }
+
+  .brand-copy{ max-width:400px; margin-top:clamp(40px,10vh,90px); }
+  .brand-copy .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--data); margin-bottom:16px; display:flex; align-items:center; gap:8px;
+  }
+  .brand-copy .eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--data); box-shadow:0 0 8px var(--data); }
+  .brand-copy h1{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:clamp(26px,3vw,34px);
+    line-height:1.15; letter-spacing:-.01em; margin-bottom:16px;
+  }
+  .brand-copy h1 .accent{ color:var(--accent); }
+  .brand-copy p{ color:var(--muted); font-size:14.5px; line-height:1.6; }
+
+  /* mini live route preview — tilts with pointer */
+  .tilt-card{
+    margin-top:44px; padding:22px; border-radius:var(--radius); border:1px solid var(--line);
+    background:rgba(18,27,25,.6); backdrop-filter:blur(6px);
+    transform-style:preserve-3d; transition:transform .12s ease-out;
+    max-width:400px;
+  }
+  .tilt-card .row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .tilt-card .row-head span{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; }
+  .tilt-card svg{ display:block; width:100%; height:auto; }
+
+  .brand-foot{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); }
+
+  /* ---------- right: form panel ---------- */
+  .form-side{ display:flex; align-items:center; justify-content:center; padding:clamp(28px,5vw,56px); }
+  .form-card{ width:100%; max-width:380px; }
+
+  .back-link{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); margin-bottom:28px; }
+  .back-link:hover{ color:var(--text); }
+
+  .tabs{ display:flex; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:4px; margin-bottom:28px; }
+  .tabs button{
+    flex:1; border:none; background:transparent; color:var(--muted); padding:9px 0; border-radius:7px;
+    font-family:'Inter', sans-serif; font-size:13.5px; font-weight:500; cursor:pointer; transition:.15s;
+  }
+  .tabs button.active{ background:var(--accent); color:#1a1006; font-weight:600; }
+
+  .form-card h2{ font-family:'Space Grotesk', sans-serif; font-size:24px; font-weight:600; margin-bottom:6px; letter-spacing:-.01em; }
+  .form-card .sub{ font-size:13.5px; color:var(--muted); margin-bottom:26px; }
+
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:11px; color:var(--muted); margin-bottom:6px; font-family:'JetBrains Mono', monospace; letter-spacing:.03em; }
+  .input-wrap{ position:relative; }
+  input[type="text"], input[type="email"], input[type="password"]{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:11px 12px; border-radius:8px; font-size:14px; font-family:'Inter', sans-serif;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(255,138,61,.15); }
+  .toggle-vis{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; display:flex;
+  }
+  .toggle-vis:hover{ color:var(--text); }
+
+  .role-row{ display:flex; gap:8px; margin-bottom:18px; }
+  .role-pill{
+    flex:1; text-align:center; padding:9px 0; border:1px solid var(--line); border-radius:8px;
+    font-size:12.5px; color:var(--muted); cursor:pointer; font-family:'JetBrains Mono', monospace; transition:.15s;
+  }
+  .role-pill input{ display:none; }
+  .role-pill.checked{ border-color:var(--data); color:var(--data); background:rgba(89,217,179,.08); }
+
+  .field-error{ font-size:11.5px; color:var(--danger); margin-top:6px; min-height:0; }
+  .form-note{ font-size:11.5px; color:var(--muted); line-height:1.55; margin:4px 0 20px; padding:10px 12px; background:var(--panel); border:1px solid var(--line); border-radius:8px; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    padding:12px 16px; border-radius:8px; border:1px solid var(--accent);
+    background:var(--accent); color:#1a1006; font-size:14px; font-weight:600;
+    cursor:pointer; font-family:'Inter', sans-serif; transition:.15s;
+  }
+  .btn:hover{ background:#ff9a58; }
+  .btn:disabled{ background:var(--accent-dim); border-color:var(--accent-dim); color:#5a3d24; cursor:not-allowed; }
+
+  .switch-line{ text-align:center; font-size:13px; color:var(--muted); margin-top:22px; }
+  .switch-line button{ background:none; border:none; color:var(--data); cursor:pointer; font-size:13px; font-family:'Inter', sans-serif; font-weight:500; padding:0; }
+
+  .demo-box{
+    margin-top:22px; padding:12px 14px; border:1px dashed var(--line); border-radius:8px;
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--muted); line-height:1.7;
+  }
+  .demo-box b{ color:var(--data); }
+  .demo-box button{ background:none; border:none; color:var(--accent); cursor:pointer; font-family:inherit; font-size:inherit; padding:0; text-decoration:underline; }
+
+  .success-panel{ text-align:center; padding:20px 0; display:none; }
+  .success-panel .check{
+    width:52px; height:52px; border-radius:50%; background:rgba(89,217,179,.12); border:1px solid var(--data-dim);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+  }
+  .success-panel h3{ font-family:'Space Grotesk', sans-serif; font-size:18px; margin-bottom:8px; }
+  .success-panel p{ font-size:13px; color:var(--muted); margin-bottom:22px; }
+
+  [data-panel]{ display:none; }
+  [data-panel].active{ display:block; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ===================== LEFT: BRAND SIDE ===================== -->
+  <div class="brand-side">
+    <div class="brand">
+      <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2-6 4 12 2-6h6" stroke="#1a1006" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="brand-name">SmartRoute</div>
+    </div>
+
+    <div class="brand-copy">
+      <div class="eyebrow">dispatch console access</div>
+      <h1>Sign in to keep your stop sets <span class="accent">where you left them.</span></h1>
+      <p>Your saved routes, depots, and fuel settings sync to your account so the next optimization run picks up exactly where you stopped.</p>
+
+      <div class="tilt-card" id="tiltCard">
+        <div class="row-head"><span>Preview · optimized route</span><span id="tiltTotal" class="mono" style="color:var(--accent);">—</span></div>
+        <svg viewBox="0 0 340 150" id="tiltSvg"></svg>
+      </div>
+    </div>
+
+    <div class="brand-foot">Phase 1 prototype · authentication is simulated locally for demo purposes</div>
+  </div>
+
+  <!-- ===================== RIGHT: FORM SIDE ===================== -->
+  <div class="form-side">
+    <div class="form-card">
+      <a class="back-link" href="landing.html">&larr; Back to SmartRoute</a>
+
+      <div class="tabs">
+        <button type="button" id="tabLogin" class="active">Log in</button>
+        <button type="button" id="tabSignup">Sign up</button>
+      </div>
+
+      <!-- ---------- LOGIN PANEL ---------- -->
+      <div data-panel="login" class="active">
+        <h2>Welcome back</h2>
+        <p class="sub">Log in to reach your dashboard and saved stop sets.</p>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" placeholder="you@company.com" autocomplete="email">
+            <div class="field-error" id="loginEmailError"></div>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+              <button type="button" class="toggle-vis" data-target="loginPassword" aria-label="Show password">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="loginPasswordError"></div>
+          </div>
+          <div class="field-error" id="loginFormError" style="margin-bottom:14px;"></div>
+          <button type="submit" class="btn">Log in</button>
+        </form>
+
+        <div class="demo-box">
+          Demo account: <b>demo@smartroute.app</b> / <b>demo1234</b><br>
+          <button type="button" id="fillDemo">Autofill demo credentials</button>
+        </div>
+
+        <div class="switch-line">No account yet? <button type="button" id="goSignup">Create one</button></div>
+      </div>
+
+      <!-- ---------- SIGNUP PANEL ---------- -->
+      <div data-panel="signup">
+        <h2>Create your account</h2>
+        <p class="sub">Set up dispatcher access in under a minute.</p>
+
+        <form id="signupForm" novalidate>
+          <div class="field">
+            <label for="signupName">Full name</label>
+            <input type="text" id="signupName" placeholder="Alex Rivera" autocomplete="name">
+            <div class="field-error" id="signupNameError"></div>
+          </div>
+          <div class="field">
+            <label for="signupEmail">Email</label>
+            <input type="email" id="signupEmail" placeholder="you@company.com" autocomplete="email">
+            <div class="field-error" id="signupEmailError"></div>
+          </div>
+          <div class="field">
+            <label for="signupPassword">Password</label>
+            <div class="input-wrap">
+              <input type="password" id="signupPassword" placeholder="At least 8 characters" autocomplete="new-password">
+              <button type="button" class="toggle-vis" data-target="signupPassword" aria-label="Show password">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+              </button>
+            </div>
+            <div class="field-error" id="signupPasswordError"></div>
+          </div>
+
+          <div class="field">
+            <label>Role</label>
+            <div class="role-row">
+              <label class="role-pill checked" id="rolePillUser">
+                <input type="radio" name="role" value="user" checked> Dispatcher
+              </label>
+              <label class="role-pill" id="rolePillAdmin">
+                <input type="radio" name="role" value="admin"> Admin
+              </label>
+            </div>
+          </div>
+
+          <div class="form-note">This is a Phase 1 prototype — accounts are stored in your browser's local storage only, not on a real server. Production auth moves to Express + JWT + bcrypt in Phase 2.</div>
+
+          <div class="field-error" id="signupFormError" style="margin-bottom:14px;"></div>
+          <button type="submit" class="btn">Create account</button>
+        </form>
+
+        <div class="switch-line">Already have an account? <button type="button" id="goLogin">Log in</button></div>
+      </div>
+
+      <!-- ---------- SUCCESS PANEL ---------- -->
+      <div class="success-panel" id="successPanel">
+        <div class="check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#59d9b3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3 id="successTitle">You're in</h3>
+        <p id="successSub">Session started for you.</p>
+        <a class="btn" href="index.html" style="text-decoration:none;">Continue to optimizer →</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = 'smartroute_users_v1';
+  var SESSION_KEY = 'smartroute_session_v1';
+
+  /* ===================== simple obfuscation (NOT real security) ===================== */
+  // Phase 1 prototype only — a real build hashes with bcrypt server-side.
+  function encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+  function loadUsers(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; }
+  }
+  function saveUsers(users){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(users)); return true; }catch(e){ return false; }
+  }
+  function seedDemoUser(){
+    var users = loadUsers();
+    if(!users.some(u => u.email === 'demo@smartroute.app')){
+      users.push({ name:'Demo Dispatcher', email:'demo@smartroute.app', password: encode('demo1234'), role:'user' });
+      saveUsers(users);
+    }
+  }
+  seedDemoUser();
+
+  /* ===================== tab / panel switching ===================== */
+  var tabLogin = document.getElementById('tabLogin');
+  var tabSignup = document.getElementById('tabSignup');
+  var panelLogin = document.querySelector('[data-panel="login"]');
+  var panelSignup = document.querySelector('[data-panel="signup"]');
+  var successPanel = document.getElementById('successPanel');
+
+  function showLogin(){
+    tabLogin.classList.add('active'); tabSignup.classList.remove('active');
+    panelLogin.classList.add('active'); panelSignup.classList.remove('active');
+    successPanel.style.display = 'none';
+    document.querySelector('.tabs').style.display = 'flex';
+  }
+  function showSignup(){
+    tabSignup.classList.add('active'); tabLogin.classList.remove('active');
+    panelSignup.classList.add('active'); panelLogin.classList.remove('active');
+    successPanel.style.display = 'none';
+    document.querySelector('.tabs').style.display = 'flex';
+  }
+  tabLogin.addEventListener('click', showLogin);
+  tabSignup.addEventListener('click', showSignup);
+  document.getElementById('goSignup').addEventListener('click', showSignup);
+  document.getElementById('goLogin').addEventListener('click', showLogin);
+
+  // deep-link via ?mode=signup
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('mode') === 'signup') showSignup(); else showLogin();
+
+  /* ===================== password visibility ===================== */
+  document.querySelectorAll('.toggle-vis').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = document.getElementById(btn.dataset.target);
+      target.type = target.type === 'password' ? 'text' : 'password';
+    });
+  });
+
+  /* ===================== role pill styling ===================== */
+  var rolePillUser = document.getElementById('rolePillUser');
+  var rolePillAdmin = document.getElementById('rolePillAdmin');
+  [rolePillUser, rolePillAdmin].forEach(function(pill){
+    pill.addEventListener('click', function(){
+      rolePillUser.classList.toggle('checked', pill === rolePillUser);
+      rolePillAdmin.classList.toggle('checked', pill === rolePillAdmin);
+    });
+  });
+
+  /* ===================== validation helpers ===================== */
+  function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function setError(id, msg){ document.getElementById(id).textContent = msg || ''; }
+
+  function revealSuccess(title, sub){
+    document.querySelector('.tabs').style.display = 'none';
+    panelLogin.classList.remove('active');
+    panelSignup.classList.remove('active');
+    document.getElementById('successTitle').textContent = title;
+    document.getElementById('successSub').textContent = sub;
+    successPanel.style.display = 'block';
+  }
+
+  /* ===================== login ===================== */
+  document.getElementById('fillDemo').addEventListener('click', function(){
+    document.getElementById('loginEmail').value = 'demo@smartroute.app';
+    document.getElementById('loginPassword').value = 'demo1234';
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    setError('loginEmailError',''); setError('loginPasswordError',''); setError('loginFormError','');
+
+    var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    var password = document.getElementById('loginPassword').value;
+
+    var valid = true;
+    if(!isValidEmail(email)){ setError('loginEmailError','Enter a valid email address.'); valid = false; }
+    if(!password){ setError('loginPasswordError','Enter your password.'); valid = false; }
+    if(!valid) return;
+
+    var users = loadUsers();
+    var user = users.find(u => u.email === email);
+    if(!user || user.password !== encode(password)){
+      setError('loginFormError', 'Email or password is incorrect.');
+      return;
+    }
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name:user.name, email:user.email, role:user.role }));
+    revealSuccess('Welcome back, ' + user.name.split(' ')[0], 'You are logged in as ' + (user.role === 'admin' ? 'an admin.' : 'a dispatcher.'));
+  });
+
+  /* ===================== signup ===================== */
+  document.getElementById('signupForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    setError('signupNameError',''); setError('signupEmailError',''); setError('signupPasswordError',''); setError('signupFormError','');
+
+    var name = document.getElementById('signupName').value.trim();
+    var email = document.getElementById('signupEmail').value.trim().toLowerCase();
+    var password = document.getElementById('signupPassword').value;
+    var role = document.querySelector('input[name="role"]:checked').value;
+
+    var valid = true;
+    if(name.length < 2){ setError('signupNameError','Enter your full name.'); valid = false; }
+    if(!isValidEmail(email)){ setError('signupEmailError','Enter a valid email address.'); valid = false; }
+    if(password.length < 8){ setError('signupPasswordError','Use at least 8 characters.'); valid = false; }
+    if(!valid) return;
+
+    var users = loadUsers();
+    if(users.some(u => u.email === email)){
+      setError('signupFormError', 'An account with that email already exists.');
+      return;
+    }
+
+    users.push({ name:name, email:email, password: encode(password), role:role });
+    saveUsers(users);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name:name, email:email, role:role }));
+    revealSuccess('Account created, ' + name.split(' ')[0], 'You are set up as ' + (role === 'admin' ? 'an admin.' : 'a dispatcher.') + ' You can log in with these credentials next time.');
+  });
+
+  /* ===================== tilt card: mini animated route preview ===================== */
+  var tiltCard = document.getElementById('tiltCard');
+  var tiltSvg = document.getElementById('tiltSvg');
+  var svgNS = 'http://www.w3.org/2000/svg';
+
+  var previewPts = [
+    {x:30,y:110},{x:95,y:35},{x:165,y:80},{x:225,y:28},{x:300,y:95}
+  ];
+
+  function buildPreview(){
+    tiltSvg.innerHTML = '';
+    var d = 'M ' + previewPts[0].x + ' ' + previewPts[0].y + ' ';
+    previewPts.slice(1).forEach(function(p){ d += 'L ' + p.x + ' ' + p.y + ' '; });
+
+    var path = document.createElementNS(svgNS,'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke','#ff8a3d');
+    path.setAttribute('stroke-width','2');
+    path.setAttribute('stroke-linecap','round');
+    path.setAttribute('stroke-linejoin','round');
+    var len = 500;
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    path.style.transition = 'stroke-dashoffset 2s ease-out';
+    tiltSvg.appendChild(path);
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ path.style.strokeDashoffset = 0; }); });
+
+    previewPts.forEach(function(p, i){
+      var halo = document.createElementNS(svgNS,'circle');
+      halo.setAttribute('cx',p.x); halo.setAttribute('cy',p.y); halo.setAttribute('r', 9);
+      halo.setAttribute('fill', i===0 ? 'rgba(255,138,61,.18)' : 'rgba(89,217,179,.15)');
+      tiltSvg.appendChild(halo);
+
+      var dot = document.createElementNS(svgNS,'circle');
+      dot.setAttribute('cx',p.x); dot.setAttribute('cy',p.y); dot.setAttribute('r', 5);
+      dot.setAttribute('fill', i===0 ? '#ff8a3d' : '#59d9b3');
+      dot.setAttribute('stroke','#121b19'); dot.setAttribute('stroke-width','1.5');
+      tiltSvg.appendChild(dot);
+    });
+  }
+  buildPreview();
+
+  // fake total distance readout
+  var tiltTotal = document.getElementById('tiltTotal');
+  var totalKm = 0;
+  for(var i=0;i<previewPts.length-1;i++){
+    var dx = previewPts[i+1].x - previewPts[i].x, dy = previewPts[i+1].y - previewPts[i].y;
+    totalKm += Math.sqrt(dx*dx+dy*dy) * 0.18;
+  }
+  setTimeout(function(){ tiltTotal.textContent = totalKm.toFixed(1) + ' km'; }, 700);
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduceMotion){
+    document.querySelector('.brand-side').addEventListener('mousemove', function(e){
+      var rect = tiltCard.getBoundingClientRect();
+      var cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+      var dx = (e.clientX - cx) / rect.width;
+      var dy = (e.clientY - cy) / rect.height;
+      var rotY = Math.max(-8, Math.min(8, dx * 14));
+      var rotX = Math.max(-8, Math.min(8, dy * -14));
+      tiltCard.style.transform = 'perspective(700px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg)';
+    });
+    document.querySelector('.brand-side').addEventListener('mouseleave', function(){
+      tiltCard.style.transform = 'perspective(700px) rotateX(0deg) rotateY(0deg)';
+    });
+  }
+
+  /* ===================== if already logged in, greet ===================== */
+  try{
+    var existing = JSON.parse(sessionStorage.getItem(SESSION_KEY));
+    if(existing && existing.email){
+      // leave forms visible but user can just hit "Continue" pattern; no forced redirect
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
