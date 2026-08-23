@@ -11,5 +11,5 @@
   function optimize(stops,opts={}){if(stops.length<2)return {route:[],originalKm:0,nnKm:0,totalKm:0,savedKm:0,savedPct:0,simulation:{}};const original=[...stops,stops[0]], originalKm=dist(original);const nn=nearestNeighbor(stops,opts),nnKm=dist(nn);const improved=twoOpt(nn);let route=improved;let sim=simulate(route,opts); // preserve feasibility: if 2-opt makes more lateness, compare NN
     const nnSim=simulate(nn,opts); if(sim.lateCount>nnSim.lateCount || (sim.lateCount===nnSim.lateCount&&sim.onTimeRate<nnSim.onTimeRate)) {route=nn;sim=nnSim}
     const totalKm=dist(route);const savedKm=originalKm-totalKm;return {route,originalKm,nnKm,totalKm,savedKm,savedPct:originalKm?Math.max(0,savedKm/originalKm*100):0,simulation:sim,nnRoute:nn,nnSimulation:nnSim,iterationsLabel:'Nearest Neighbor + 2-Opt'} }
-  window.RouteForge={haversineKm,totalDistanceKm:dist,nearestNeighbor,twoOpt,optimize,simulate,minutes,priorityWeight};
+  window.RouteForge={...(window.RouteForge||{}),haversineKm,totalDistanceKm:dist,nearestNeighbor,twoOpt,optimize,simulate,minutes,priorityWeight};
 })();
