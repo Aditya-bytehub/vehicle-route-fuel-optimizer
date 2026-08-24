@@ -297,12 +297,12 @@ canvas { touch-action: pan-y; }
 .hero-stat-value { font-size: 14px; font-family: var(--font-mono); color: #fff; }
 .hero-stat-label { font-size: 11px; color: var(--ink-300); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
 
-.scroll-cue {
+/* .scroll-cue {
   position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
-  z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 2; display: none !important; flex-direction: column; align-items: center; gap: 8px;
 }
 .scroll-cue span { font-size: 11px; color: var(--ink-300); font-family: var(--font-mono); letter-spacing: 0.1em; }
-.scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--ink-300), transparent); }
+.scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--ink-300), transparent); } */
 
 /* ===== SECTIONS ===== */
 .section { position: relative; padding: 128px 24px; }
