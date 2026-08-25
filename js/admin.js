@@ -19,7 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const dist = allR.reduce((s, r) => s + Number(r.optimizedDistance || 0), 0);
     const fuel = allR.reduce((s, r) => s + Number(r.fuelUsed || 0), 0);
     const cost = allR.reduce((s, r) => s + Number(r.fuelCost || 0), 0);
+
     const urgent = allR.reduce((s, r) => s + Number(r.urgentCount || 0), 0);
+    
     const late = allR.reduce((s, r) => s + Number(r.lateCount || 0), 0);
     [
       ["users", allU.filter((u) => u.role === "user").length],
