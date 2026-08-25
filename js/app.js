@@ -68,13 +68,14 @@
   function esc(s) {
     return RouteForge.esc(s);
   }
-  function load() {
+  function load()  {
     stops =
       JSON.parse(localStorage.getItem("routeforge_stops_v2") || "null") ||
       sample;
     fuel =
       JSON.parse(localStorage.getItem("routeforge_fuel_v2") || "null") || fuel;
   }
+  
   function save() {
     localStorage.setItem("routeforge_stops_v2", JSON.stringify(stops));
     localStorage.setItem("routeforge_fuel_v2", JSON.stringify(fuel));

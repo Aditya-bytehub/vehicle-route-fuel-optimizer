@@ -112,7 +112,7 @@
         u.id === "admin_demo",
     );
     if (adminIndex === -1) us.push(admin);
-    else us[adminIndex] = { ...us[adminIndex], ...admin };
+    else us[adminIndex] = { ...us[adminIndex], ...admin  };
     write(KEYS.users, us);
     if (!vehicles().length)
       write(KEYS.vehicles, [
