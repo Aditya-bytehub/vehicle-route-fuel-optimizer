@@ -1,1 +1,65 @@
-document.addEventListener('DOMContentLoaded',()=>{const u=RouteForge.requireUser();if(!u)return;RouteForge.pageChrome('Optimization Result','A transparent view of distance, urgency, time windows and fuel impact.','plan');const r=RouteForge.read(RouteForge.KEYS.draft,null);if(!r||r.userId!==u.id)return location.href='plan-route.html';document.getElementById('route-name').textContent=r.routeName;document.getElementById('distance').textContent=r.optimizedDistance.toFixed(1)+' km';document.getElementById('original').textContent=r.originalDistance.toFixed(1)+' km';document.getElementById('fuel').textContent=r.fuelUsed.toFixed(2)+' L';document.getElementById('cost').textContent='₹'+Math.round(r.fuelCost).toLocaleString('en-IN');document.getElementById('saving').textContent=Math.max(0,r.originalDistance-r.optimizedDistance).toFixed(1)+' km';document.getElementById('improvement').textContent=(r.originalDistance?Math.max(0,(r.originalDistance-r.optimizedDistance)/r.originalDistance*100):0).toFixed(1)+'%';document.getElementById('on-time').textContent=r.onTimeRate.toFixed(0)+'%';document.getElementById('urgent').textContent=r.urgentCount;document.getElementById('late').textContent=r.lateCount;document.getElementById('route-stops').innerHTML=r.simulation.legs.map((l,i)=>`<div class="timeline-item"><div class="timeline-dot ${l.status==='LATE'?'danger':l.status==='WAITING'?'warn':'good'}"></div><div class="timeline-main"><b>${RouteForge.esc(l.stop.name)}</b><span class="priority ${l.stop.priority}">${l.stop.priority}</span><small>${l.status} · arrival ${clock(l.arrival)} ${l.waiting?`· waited ${Math.round(l.waiting)} min`:''} ${l.lateMinutes?`· ${Math.round(l.lateMinutes)} min late`:''}</small></div></div>`).join('');const alreadySaved=RouteForge.routes().some(x=>x.id===r.id&&x.userId===u.id);if(alreadySaved){const b=document.getElementById('save-route');b.disabled=true;b.textContent='Saved ✓'}document.getElementById('save-route').onclick=()=>{const rs=RouteForge.routes().filter(x=>x.id!==r.id);RouteForge.write(RouteForge.KEYS.routes,[...rs,r]);RouteForge.toast('Route saved successfully','success');document.getElementById('save-route').disabled=true;document.getElementById('save-route').textContent='Saved ✓'};document.getElementById('new-route').onclick=()=>location.href='plan-route.html';function clock(m){m=Math.round(m||0);return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}});
+document.addEventListener("DOMContentLoaded", () => {
+  const u = RouteForge.requireUser();
+  if (!u) return;
+  RouteForge.pageChrome(
+    "Optimization Result",
+    "A transparent view of distance, urgency, time windows and fuel impact.",
+    "plan",
+  );
+  const r = RouteForge.read(RouteForge.KEYS.draft, null);
+  if (!r || r.userId !== u.id) return (location.href = "plan-route.html");
+  document.getElementById("route-name").textContent = r.routeName;
+  document.getElementById("distance").textContent =
+    r.optimizedDistance.toFixed(1) + " km";
+  document.getElementById("original").textContent =
+    r.originalDistance.toFixed(1) + " km";
+  document.getElementById("fuel").textContent = r.fuelUsed.toFixed(2) + " L";
+  document.getElementById("cost").textContent =
+    "₹" + Math.round(r.fuelCost).toLocaleString("en-IN");
+  document.getElementById("saving").textContent =
+    Math.max(0, r.originalDistance - r.optimizedDistance).toFixed(1) + " km";
+  document.getElementById("improvement").textContent =
+    (r.originalDistance
+      ? Math.max(
+          0,
+          ((r.originalDistance - r.optimizedDistance) / r.originalDistance) *
+            100,
+        )
+      : 0
+    ).toFixed(1) + "%";
+  document.getElementById("on-time").textContent =
+    r.onTimeRate.toFixed(0) + "%";
+  document.getElementById("urgent").textContent = r.urgentCount;
+  document.getElementById("late").textContent = r.lateCount;
+  document.getElementById("route-stops").innerHTML = r.simulation.legs
+    .map(
+      (l, i) =>
+        `<div class="timeline-item"><div class="timeline-dot ${l.status === "LATE" ? "danger" : l.status === "WAITING" ? "warn" : "good"}"></div><div class="timeline-main"><b>${RouteForge.esc(l.stop.name)}</b><span class="priority ${l.stop.priority}">${l.stop.priority}</span><small>${l.status} · arrival ${clock(l.arrival)} ${l.waiting ? `· waited ${Math.round(l.waiting)} min` : ""} ${l.lateMinutes ? `· ${Math.round(l.lateMinutes)} min late` : ""}</small></div></div>`,
+    )
+    .join("");
+  const alreadySaved = RouteForge.routes().some(
+    (x) => x.id === r.id && x.userId === u.id,
+  );
+  if (alreadySaved) {
+    const b = document.getElementById("save-route");
+    b.disabled = true;
+    b.textContent = "Saved ✓";
+  }
+  document.getElementById("save-route").onclick = () => {
+    const rs = RouteForge.routes().filter((x) => x.id !== r.id);
+    RouteForge.write(RouteForge.KEYS.routes, [...rs, r]);
+    RouteForge.toast("Route saved successfully", "success");
+    document.getElementById("save-route").disabled = true;
+    document.getElementById("save-route").textContent = "Saved ✓";
+  };
+  document.getElementById("new-route").onclick = () =>
+    (location.href = "plan-route.html");
+  function clock(m) {
+    m = Math.round(m || 0);
+    return (
+      String(Math.floor(m / 60) % 24).padStart(2, "0") +
+      ":" +
+      String(m % 60).padStart(2, "0")
+    );
+  }
+});

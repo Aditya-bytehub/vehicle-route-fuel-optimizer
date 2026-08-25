@@ -125,36 +125,36 @@ RouteForge/
 
 ### Public pages
 
-| Page | Purpose |
-|---|---|
-| `index.html` | RouteForge landing page and product introduction |
-| `login.html` | Login to an existing account |
-| `signup.html` | Create a new account |
+| Page          | Purpose                                          |
+| ------------- | ------------------------------------------------ |
+| `index.html`  | RouteForge landing page and product introduction |
+| `login.html`  | Login to an existing account                     |
+| `signup.html` | Create a new account                             |
 
 ### User pages
 
-| Page | Purpose |
-|---|---|
-| `dashboard.html` | Overview of routes, stops, distance, fuel, and cost |
-| `plan-route.html` | Create and optimize a new route |
-| `route-result.html` | Inspect the optimized route and save it |
-| `routes.html` | Browse multiple saved routes |
-| `history.html` | Review previous route activity |
-| `vehicles.html` | Add/manage delivery vehicles |
-| `analytics.html` | Analyze route and delivery performance |
-| `profile.html` | Manage user profile information |
-| `settings.html` | Application/user settings |
+| Page                | Purpose                                             |
+| ------------------- | --------------------------------------------------- |
+| `dashboard.html`    | Overview of routes, stops, distance, fuel, and cost |
+| `plan-route.html`   | Create and optimize a new route                     |
+| `route-result.html` | Inspect the optimized route and save it             |
+| `routes.html`       | Browse multiple saved routes                        |
+| `history.html`      | Review previous route activity                      |
+| `vehicles.html`     | Add/manage delivery vehicles                        |
+| `analytics.html`    | Analyze route and delivery performance              |
+| `profile.html`      | Manage user profile information                     |
+| `settings.html`     | Application/user settings                           |
 
 ### Admin pages
 
-| Page | Purpose |
-|---|---|
+| Page                   | Purpose                           |
+| ---------------------- | --------------------------------- |
 | `admin-dashboard.html` | Admin command center and overview |
-| `admin-users.html` | View and manage all users |
-| `admin-routes.html` | View routes across all users |
-| `admin-urgent.html` | Monitor urgent deliveries |
-| `admin-late.html` | Monitor late/problem deliveries |
-| `admin-analytics.html` | Overall system analytics |
+| `admin-users.html`     | View and manage all users         |
+| `admin-routes.html`    | View routes across all users      |
+| `admin-urgent.html`    | Monitor urgent deliveries         |
+| `admin-late.html`      | Monitor late/problem deliveries   |
+| `admin-analytics.html` | Overall system analytics          |
 
 ---
 
@@ -490,18 +490,23 @@ Future versions could include:
 If presenting RouteForge as an academic project, emphasize these points:
 
 ### Problem
+
 Delivery companies need to visit multiple locations while minimizing unnecessary travel, fuel consumption, and cost.
 
 ### Algorithmic contribution
+
 The project implements its own route optimization logic using distance calculation, nearest-neighbor construction, priority handling, and 2-Opt improvement.
 
 ### Why not brute force?
+
 The number of possible routes grows factorially, making exhaustive search impractical as the number of stops increases.
 
 ### Why 2-Opt?
+
 Nearest Neighbor is fast but can produce inefficient paths. 2-Opt improves the route by removing unnecessary crossings and reducing total distance.
 
 ### Why multiple routes?
+
 Real users may plan different routes for different days, vehicles, regions, or delivery batches. Therefore, the system stores multiple independent routes per user instead of maintaining only one route.
 
 ---

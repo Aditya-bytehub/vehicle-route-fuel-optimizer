@@ -1,1 +1,60 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Analytics · RouteForge</title><link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/app.css"></head><body data-page="analytics" data-title="Analytics" data-subtitle="Calculated performance metrics from your saved routes."><div class="app-layout"><aside id="sidebar" class="sidebar"></aside><main class="main"><header class="topbar"><div><h1 id="page-title" class="page-title">Analytics</h1><p id="page-subtitle" class="page-subtitle">Calculated performance metrics from your saved routes.</p></div><div class="top-actions"><span class="user-chip" id="top-user"></span><a href="plan-route.html" class="btn btn-primary">+ New Route</a></div></header><div class="grid metrics"><div class="metric glass"><small>Total Routes</small><strong id="a-routes">—</strong></div><div class="metric glass"><small>Stops</small><strong id="a-stops">—</strong></div><div class="metric glass"><small>Distance Saved</small><strong id="a-saved">—</strong></div><div class="metric glass"><small>Fuel Saved</small><strong id="a-fuel">—</strong></div><div class="metric glass"><small>Cost Saved</small><strong id="a-cost">—</strong></div><div class="metric glass"><small>Avg On-Time</small><strong id="a-time">—</strong></div></div><section class="glass section-card" style="margin-top:16px"><div class="section-head"><h2>Optimization trend</h2></div><canvas class="chart" data-chart></canvas></section></main></div><script src="../js/optimizer.js"></script><script src="../js/core.js"></script><script src="../js/generic.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Analytics · RouteForge</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/app.css" />
+  </head>
+  <body
+    data-page="analytics"
+    data-title="Analytics"
+    data-subtitle="Calculated performance metrics from your saved routes."
+  >
+    <div class="app-layout">
+      <aside id="sidebar" class="sidebar"></aside>
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1 id="page-title" class="page-title">Analytics</h1>
+            <p id="page-subtitle" class="page-subtitle">
+              Calculated performance metrics from your saved routes.
+            </p>
+          </div>
+          <div class="top-actions">
+            <span class="user-chip" id="top-user"></span
+            ><a href="plan-route.html" class="btn btn-primary">+ New Route</a>
+          </div>
+        </header>
+        <div class="grid metrics">
+          <div class="metric glass">
+            <small>Total Routes</small><strong id="a-routes">—</strong>
+          </div>
+          <div class="metric glass">
+            <small>Stops</small><strong id="a-stops">—</strong>
+          </div>
+          <div class="metric glass">
+            <small>Distance Saved</small><strong id="a-saved">—</strong>
+          </div>
+          <div class="metric glass">
+            <small>Fuel Saved</small><strong id="a-fuel">—</strong>
+          </div>
+          <div class="metric glass">
+            <small>Cost Saved</small><strong id="a-cost">—</strong>
+          </div>
+          <div class="metric glass">
+            <small>Avg On-Time</small><strong id="a-time">—</strong>
+          </div>
+        </div>
+        <section class="glass section-card" style="margin-top: 16px">
+          <div class="section-head"><h2>Optimization trend</h2></div>
+          <canvas class="chart" data-chart></canvas>
+        </section>
+      </main>
+    </div>
+    <script src="../js/optimizer.js"></script>
+    <script src="../js/core.js"></script>
+    <script src="../js/generic.js"></script>
+  </body>
+</html>

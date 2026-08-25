@@ -1,15 +1,206 @@
 (() => {
-  const R=6371, rad=d=>d*Math.PI/180;
-  function haversineKm(a,b){const dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),p1=rad(a.lat),p2=rad(b.lat);const h=Math.sin(dLat/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(h)))}
-  const dist=(route)=>route.reduce((s,x,i)=>i?s+haversineKm(route[i-1],x):0,0);
-  const minutes=t=>{const [h,m]=(t||'00:00').split(':').map(Number);return h*60+m};
-  const priorityWeight={urgent:0,high:1,normal:2,low:3};
-  function candidateScore(from,s,now,speed){const d=haversineKm(from,s), travel=d/speed*60, arrival=now+travel, early=minutes(s.windowStart), late=minutes(s.windowEnd);let wait=Math.max(0,early-arrival), lateness=Math.max(0,arrival-late);let urgency=(3-priorityWeight[s.priority||'normal'])*25;let feasibility=lateness?120+lateness*2:wait*.18;let deadline=Math.max(0,late-arrival);return d+feasibility-urgency-(deadline<45?18:0)}
-  function simulate(route,{startTime='09:00',speed=40}={}){let now=minutes(startTime),late=0,onTime=0,waitTotal=0,legs=[];for(let i=0;i<route.length;i++){if(i===0){legs.push({stop:route[i],arrival:now,waiting:0,serviceStart:now,departure:now,status:'DEPOT'});continue}const prev=route[i-1],s=route[i],d=haversineKm(prev,s),travel=d/speed*60;const arrival=now+travel,early=minutes(s.windowStart),latest=minutes(s.windowEnd),waiting=Math.max(0,early-arrival),serviceStart=Math.max(arrival,early),departure=serviceStart+Number(s.service||0),lateMin=Math.max(0,arrival-latest);let status=lateMin>0?'LATE':waiting>0?'WAITING':(latest-arrival<30?'AT RISK':'ON TIME');if(lateMin)late++;else if(status==='ON TIME')onTime++;waitTotal+=waiting;legs.push({stop:s,distance:d,travelMinutes:travel,arrival,waiting,serviceStart,departure,lateMinutes:lateMin,status});now=departure}return {legs,lateCount:late,onTimeRate:route.length>1?((route.length-1-late)/(route.length-1))*100:100,waitMinutes:waitTotal,totalMinutes:Math.max(0,now-minutes(startTime))}}
-  function nearestNeighbor(stops,opts={}){if(stops.length<2)return stops.slice();const depot=stops[0],remaining=stops.slice(1),route=[depot];let now=minutes(opts.startTime||'09:00');while(remaining.length){const from=route.at(-1);let bestI=0,best=Infinity;remaining.forEach((s,i)=>{const sc=candidateScore(from,s,now,opts.speed||40);if(sc<best){best=sc;bestI=i}});const s=remaining.splice(bestI,1)[0];const travel=haversineKm(from,s)/(opts.speed||40)*60;const arrival=now+travel;now=Math.max(arrival,minutes(s.windowStart||'00:00'))+Number(s.service||0);route.push(s)}route.push(depot);return route}
-  function twoOpt(route){if(route.length<4)return route.slice();let best=route.slice(),changed=true,iterations=0;while(changed&&iterations<120){changed=false;iterations++;for(let i=1;i<best.length-2;i++)for(let j=i+1;j<best.length-1;j++){const before=haversineKm(best[i-1],best[i])+haversineKm(best[j],best[j+1]);const after=haversineKm(best[i-1],best[j])+haversineKm(best[i],best[j+1]);if(after<before-1e-8){best=[...best.slice(0,i),...best.slice(i,j+1).reverse(),...best.slice(j+1)];changed=true}}}return best}
-  function optimize(stops,opts={}){if(stops.length<2)return {route:[],originalKm:0,nnKm:0,totalKm:0,savedKm:0,savedPct:0,simulation:{}};const original=[...stops,stops[0]], originalKm=dist(original);const nn=nearestNeighbor(stops,opts),nnKm=dist(nn);const improved=twoOpt(nn);let route=improved;let sim=simulate(route,opts); // preserve feasibility: if 2-opt makes more lateness, compare NN
-    const nnSim=simulate(nn,opts); if(sim.lateCount>nnSim.lateCount || (sim.lateCount===nnSim.lateCount&&sim.onTimeRate<nnSim.onTimeRate)) {route=nn;sim=nnSim}
-    const totalKm=dist(route);const savedKm=originalKm-totalKm;return {route,originalKm,nnKm,totalKm,savedKm,savedPct:originalKm?Math.max(0,savedKm/originalKm*100):0,simulation:sim,nnRoute:nn,nnSimulation:nnSim,iterationsLabel:'Nearest Neighbor + 2-Opt'} }
-  window.RouteForge={...(window.RouteForge||{}),haversineKm,totalDistanceKm:dist,nearestNeighbor,twoOpt,optimize,simulate,minutes,priorityWeight};
+  const R = 6371,
+    rad = (d) => (d * Math.PI) / 180;
+  function haversineKm(a, b) {
+    const dLat = rad(b.lat - a.lat),
+      dLng = rad(b.lng - a.lng),
+      p1 = rad(a.lat),
+      p2 = rad(b.lat);
+    const h =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(p1) * Math.cos(p2) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+  const dist = (route) =>
+    route.reduce((s, x, i) => (i ? s + haversineKm(route[i - 1], x) : 0), 0);
+  const minutes = (t) => {
+    const [h, m] = (t || "00:00").split(":").map(Number);
+    return h * 60 + m;
+  };
+  const priorityWeight = { urgent: 0, high: 1, normal: 2, low: 3 };
+  function candidateScore(from, s, now, speed) {
+    const d = haversineKm(from, s),
+      travel = (d / speed) * 60,
+      arrival = now + travel,
+      early = minutes(s.windowStart),
+      late = minutes(s.windowEnd);
+    let wait = Math.max(0, early - arrival),
+      lateness = Math.max(0, arrival - late);
+    let urgency = (3 - priorityWeight[s.priority || "normal"]) * 25;
+    let feasibility = lateness ? 120 + lateness * 2 : wait * 0.18;
+    let deadline = Math.max(0, late - arrival);
+    return d + feasibility - urgency - (deadline < 45 ? 18 : 0);
+  }
+  function simulate(route, { startTime = "09:00", speed = 40 } = {}) {
+    let now = minutes(startTime),
+      late = 0,
+      onTime = 0,
+      waitTotal = 0,
+      legs = [];
+    for (let i = 0; i < route.length; i++) {
+      if (i === 0) {
+        legs.push({
+          stop: route[i],
+          arrival: now,
+          waiting: 0,
+          serviceStart: now,
+          departure: now,
+          status: "DEPOT",
+        });
+        continue;
+      }
+      const prev = route[i - 1],
+        s = route[i],
+        d = haversineKm(prev, s),
+        travel = (d / speed) * 60;
+      const arrival = now + travel,
+        early = minutes(s.windowStart),
+        latest = minutes(s.windowEnd),
+        waiting = Math.max(0, early - arrival),
+        serviceStart = Math.max(arrival, early),
+        departure = serviceStart + Number(s.service || 0),
+        lateMin = Math.max(0, arrival - latest);
+      let status =
+        lateMin > 0
+          ? "LATE"
+          : waiting > 0
+            ? "WAITING"
+            : latest - arrival < 30
+              ? "AT RISK"
+              : "ON TIME";
+      if (lateMin) late++;
+      else if (status === "ON TIME") onTime++;
+      waitTotal += waiting;
+      legs.push({
+        stop: s,
+        distance: d,
+        travelMinutes: travel,
+        arrival,
+        waiting,
+        serviceStart,
+        departure,
+        lateMinutes: lateMin,
+        status,
+      });
+      now = departure;
+    }
+    return {
+      legs,
+      lateCount: late,
+      onTimeRate:
+        route.length > 1
+          ? ((route.length - 1 - late) / (route.length - 1)) * 100
+          : 100,
+      waitMinutes: waitTotal,
+      totalMinutes: Math.max(0, now - minutes(startTime)),
+    };
+  }
+  function nearestNeighbor(stops, opts = {}) {
+    if (stops.length < 2) return stops.slice();
+    const depot = stops[0],
+      remaining = stops.slice(1),
+      route = [depot];
+    let now = minutes(opts.startTime || "09:00");
+    while (remaining.length) {
+      const from = route.at(-1);
+      let bestI = 0,
+        best = Infinity;
+      remaining.forEach((s, i) => {
+        const sc = candidateScore(from, s, now, opts.speed || 40);
+        if (sc < best) {
+          best = sc;
+          bestI = i;
+        }
+      });
+      const s = remaining.splice(bestI, 1)[0];
+      const travel = (haversineKm(from, s) / (opts.speed || 40)) * 60;
+      const arrival = now + travel;
+      now =
+        Math.max(arrival, minutes(s.windowStart || "00:00")) +
+        Number(s.service || 0);
+      route.push(s);
+    }
+    route.push(depot);
+    return route;
+  }
+  function twoOpt(route) {
+    if (route.length < 4) return route.slice();
+    let best = route.slice(),
+      changed = true,
+      iterations = 0;
+    while (changed && iterations < 120) {
+      changed = false;
+      iterations++;
+      for (let i = 1; i < best.length - 2; i++)
+        for (let j = i + 1; j < best.length - 1; j++) {
+          const before =
+            haversineKm(best[i - 1], best[i]) +
+            haversineKm(best[j], best[j + 1]);
+          const after =
+            haversineKm(best[i - 1], best[j]) +
+            haversineKm(best[i], best[j + 1]);
+          if (after < before - 1e-8) {
+            best = [
+              ...best.slice(0, i),
+              ...best.slice(i, j + 1).reverse(),
+              ...best.slice(j + 1),
+            ];
+            changed = true;
+          }
+        }
+    }
+    return best;
+  }
+  function optimize(stops, opts = {}) {
+    if (stops.length < 2)
+      return {
+        route: [],
+        originalKm: 0,
+        nnKm: 0,
+        totalKm: 0,
+        savedKm: 0,
+        savedPct: 0,
+        simulation: {},
+      };
+    const original = [...stops, stops[0]],
+      originalKm = dist(original);
+    const nn = nearestNeighbor(stops, opts),
+      nnKm = dist(nn);
+    const improved = twoOpt(nn);
+    let route = improved;
+    let sim = simulate(route, opts); // preserve feasibility: if 2-opt makes more lateness, compare NN
+    const nnSim = simulate(nn, opts);
+    if (
+      sim.lateCount > nnSim.lateCount ||
+      (sim.lateCount === nnSim.lateCount && sim.onTimeRate < nnSim.onTimeRate)
+    ) {
+      route = nn;
+      sim = nnSim;
+    }
+    const totalKm = dist(route);
+    const savedKm = originalKm - totalKm;
+    return {
+      route,
+      originalKm,
+      nnKm,
+      totalKm,
+      savedKm,
+      savedPct: originalKm ? Math.max(0, (savedKm / originalKm) * 100) : 0,
+      simulation: sim,
+      nnRoute: nn,
+      nnSimulation: nnSim,
+      iterationsLabel: "Nearest Neighbor + 2-Opt",
+    };
+  }
+  window.RouteForge = {
+    ...(window.RouteForge || {}),
+    haversineKm,
+    totalDistanceKm: dist,
+    nearestNeighbor,
+    twoOpt,
+    optimize,
+    simulate,
+    minutes,
+    priorityWeight,
+  };
 })();
