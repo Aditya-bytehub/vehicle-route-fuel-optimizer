@@ -125,36 +125,36 @@ RouteForge/
 
 ### Public pages
 
-| Page          | Purpose                                          |
-| ------------- | ------------------------------------------------ |
-| `index.html`  | RouteForge landing page and product introduction |
-| `login.html`  | Login to an existing account                     |
-| `signup.html` | Create a new account                             |
+| Page | Purpose |
+|---|---|
+| `index.html` | RouteForge landing page and product introduction |
+| `login.html` | Login to an existing account |
+| `signup.html` | Create a new account |
 
 ### User pages
 
-| Page                | Purpose                                             |
-| ------------------- | --------------------------------------------------- |
-| `dashboard.html`    | Overview of routes, stops, distance, fuel, and cost |
-| `plan-route.html`   | Create and optimize a new route                     |
-| `route-result.html` | Inspect the optimized route and save it             |
-| `routes.html`       | Browse multiple saved routes                        |
-| `history.html`      | Review previous route activity                      |
-| `vehicles.html`     | Add/manage delivery vehicles                        |
-| `analytics.html`    | Analyze route and delivery performance              |
-| `profile.html`      | Manage user profile information                     |
-| `settings.html`     | Application/user settings                           |
+| Page | Purpose |
+|---|---|
+| `dashboard.html` | Overview of routes, stops, distance, fuel, and cost |
+| `plan-route.html` | Create and optimize a new route |
+| `route-result.html` | Inspect the optimized route and save it |
+| `routes.html` | Browse multiple saved routes |
+| `history.html` | Review previous route activity |
+| `vehicles.html` | Add/manage delivery vehicles |
+| `analytics.html` | Analyze route and delivery performance |
+| `profile.html` | Manage user profile information |
+| `settings.html` | Application/user settings |
 
 ### Admin pages
 
-| Page                   | Purpose                           |
-| ---------------------- | --------------------------------- |
+| Page | Purpose |
+|---|---|
 | `admin-dashboard.html` | Admin command center and overview |
-| `admin-users.html`     | View and manage all users         |
-| `admin-routes.html`    | View routes across all users      |
-| `admin-urgent.html`    | Monitor urgent deliveries         |
-| `admin-late.html`      | Monitor late/problem deliveries   |
-| `admin-analytics.html` | Overall system analytics          |
+| `admin-users.html` | View and manage all users |
+| `admin-routes.html` | View routes across all users |
+| `admin-urgent.html` | Monitor urgent deliveries |
+| `admin-late.html` | Monitor late/problem deliveries |
+| `admin-analytics.html` | Overall system analytics |
 
 ---
 
@@ -233,6 +233,64 @@ The application also initializes demo users when needed so the Admin → Users s
 > These credentials are for demonstration purposes only and must not be used as real production credentials.
 
 ---
+
+## 🗺️ New Map & Address Workflow
+
+The latest RouteForge build adds a map-first command center similar to the provided logistics dashboard reference. Users no longer need to type latitude/longitude. They enter normal addresses and RouteForge performs a user-triggered geocoding lookup, stores the resulting coordinates internally, runs the existing optimization engine, and then requests real road geometry for the optimized sequence.
+
+### New capabilities
+
+- Address-only stop entry — latitude/longitude fields are removed from the planning UI
+- Automatic address geocoding with cached results
+- Interactive Leaflet map with OpenStreetMap tiles and visible attribution
+- Real road geometry using OSRM after RouteForge decides the stop order
+- Screenshot-style route command center with stop sidebar, route map and summary cards
+- Automatic road distance, road travel time, fuel and fuel-cost recalculation when routing succeeds
+- Optional fleet mode that distributes stops across selected vehicles using vehicle capacity, then optimizes each vehicle route independently
+- Multi-vehicle map legend and color-coded routes
+- Fit-route map control
+- Delivery timeline with priority, vehicle, arrival, waiting and late status
+
+### Architecture
+
+```text
+User enters addresses
+        ↓
+Nominatim geocoding (user-triggered)
+        ↓
+Latitude/longitude stored internally
+        ↓
+RouteForge Haversine distance
+        ↓
+Priority-Aware Nearest Neighbor
+        ↓
+2-Opt improvement
+        ↓
+Optional multi-vehicle assignment
+        ↓
+OSRM road routing
+        ↓
+Leaflet + OpenStreetMap command-center map
+```
+
+**Important:** The mapping/routing services do not decide the optimization order. RouteForge still decides the stop sequence using its own algorithms. The external routing service is used for road geometry and road travel estimates after optimization.
+
+### Map service notes
+
+This educational frontend uses OpenStreetMap tiles, user-triggered Nominatim geocoding, and OSRM road routing. Public OSM services have usage limits and policies. Nominatim specifically requires low-volume, user-triggered usage and does not allow client-side autocomplete; this project deliberately uses explicit address lookup rather than autocomplete. For a production or high-traffic deployment, replace the public services with a suitable hosted provider or self-hosted infrastructure.
+
+### How to use the new workflow
+
+1. Open `html/login.html` and use the demo account from above.
+2. Open **Plan Route**.
+3. Enter a depot name and normal depot address.
+4. Add stops using customer/warehouse names and normal addresses — no coordinates are required.
+5. Optionally enable **Fleet mode** and select multiple vehicles.
+6. Click **Run Optimization**.
+7. The result page opens as a Route Command Center with the optimized route on a real map.
+8. Click **Save Route** to store the route in localStorage.
+
+For the best demo experience, use specific Indian addresses such as `Sector 17, Chandigarh, India` instead of vague names.
 
 ## 🚀 How to Run
 
@@ -490,23 +548,18 @@ Future versions could include:
 If presenting RouteForge as an academic project, emphasize these points:
 
 ### Problem
-
 Delivery companies need to visit multiple locations while minimizing unnecessary travel, fuel consumption, and cost.
 
 ### Algorithmic contribution
-
 The project implements its own route optimization logic using distance calculation, nearest-neighbor construction, priority handling, and 2-Opt improvement.
 
 ### Why not brute force?
-
 The number of possible routes grows factorially, making exhaustive search impractical as the number of stops increases.
 
 ### Why 2-Opt?
-
 Nearest Neighbor is fast but can produce inefficient paths. 2-Opt improves the route by removing unnecessary crossings and reducing total distance.
 
 ### Why multiple routes?
-
 Real users may plan different routes for different days, vehicles, regions, or delivery batches. Therefore, the system stores multiple independent routes per user instead of maintaining only one route.
 
 ---
