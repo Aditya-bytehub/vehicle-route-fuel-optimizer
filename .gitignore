@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Secrets
 .env
 .env.*
@@ -10,3 +11,13 @@ node_modules/
 .DS_Store
 Thumbs.db
 .vscode/
+=======
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+.env
+node_modules/
+dist/
+>>>>>>> 52f2f5617ad7e7994f8bc92561a5c748c5b0dbe7
