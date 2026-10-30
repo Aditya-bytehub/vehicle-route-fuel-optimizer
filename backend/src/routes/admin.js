@@ -1,0 +1,12 @@
+const express = require('express');
+const User = require('../models/User');
+const Route = require('../models/Route');
+const Vehicle = require('../models/Vehicle');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
+const router = express.Router();
+router.use(requireAuth, requireAdmin);
+const publicUser = u => ({ id: u._id.toString(), name: u.name, email: u.email, phone: u.phone, role: u.role, status: u.status, createdAt: u.createdAt });
+router.get('/users', async (_req, res, next) => { try { const users = await User.find().sort({ createdAt: -1 }); res.json({ users: users.map(publicUser) }); } catch (e) { next(e); } });
+router.patch('/users/:id', async (req, res, next) => { try { const data = {}; if (['active','blocked'].includes(req.body.status)) data.status = req.body.status; if (['user','admin'].includes(req.body.role)) data.role = req.body.role; if (!Object.keys(data).length) return res.status(400).json({ message: 'Provide a valid status or role.' }); const user = await User.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true }); if (!user) return res.status(404).json({ message: 'User not found.' }); res.json({ user: publicUser(user) }); } catch (e) { next(e); } });
+router.delete('/users/:id', async (req, res, next) => { try { if (req.params.id === req.user._id.toString()) return res.status(400).json({ message: 'You cannot delete your own admin account.' }); const user = await User.findById(req.params.id); if (!user) return res.status(404).json({ message: 'User not found.' }); await Promise.all([Route.deleteMany({ userId: user._id }), Vehicle.deleteMany({ userId: user._id }), user.deleteOne()]); res.json({ message: 'User and associated records deleted.' }); } catch (e) { next(e); } });
+module.exports = router;
